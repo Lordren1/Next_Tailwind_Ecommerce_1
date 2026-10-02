@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f9f9f9;
   --foreground: #171717;
+  --destructive: #fe784f;
 }
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-destructive: var(--destructive);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  scroll-behavior: smooth;
+}
+::-webkit-scrollbar {
+  display: none;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #333;
+  font-family: Inter, Helvetica, sans-serif;
 }
+
+@layer components {
+  .max-padd-container{
+    @apply mx-auto max-w-[1900px] px-4 lg:px-12
+  }
+
+  .padd-container{
+    @apply mx-auto px-4 lg:px-12
+  }
+
+  .flexCenter{
+    @apply flex items-center justify-center
+  }
+
+  .flexBetween{
+    @apply flex items-center justify-between
+  }
+
+  .flexStart{
+    @apply flex items-center justify-start
+  }
+
+  .flexEnd{
+    @apply flex items-center justify-end
+  }
+
+  .btn-destructive{
+    @apply px-8 py-2 bg-destructive hover:bg-destructive/90 transition text-white max-sm:text-sm font-semibold rounded-full cursor-pointer
+  }
+}
+
+@layer utilities {
+  h1{
+    @apply text-[36px] md:text-[44px] font-bold;
+  }
+  h2{
+    @apply text-[31px] md:text-[36px] font-bold;
+  }
+
+  h3{
+    @apply text-[24px] md:text-[31px] font-bold;
+  }
+
+  h4{
+    @apply text-[15px] md:text-[16px] font-bold;
+  }
+
+  h5{
+    @apply text-[14px] md:text-[15px] font-bold;
+  }
+
+  p{
+    @apply text-[14px] text-gray-500;
+  }
+}
+
