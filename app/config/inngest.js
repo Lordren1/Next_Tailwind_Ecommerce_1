@@ -1,6 +1,7 @@
 // src/inngest/client.ts
 import User from "@/models/User";
 import { Inngest } from "inngest";
+import dbConnection from "@/app/config/mongodb";
 
 export const inngest = new Inngest({ id: "e-commerce" });
 
