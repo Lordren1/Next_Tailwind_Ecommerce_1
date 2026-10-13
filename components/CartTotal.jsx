@@ -2,20 +2,41 @@
 
 import { useAppContext } from "@/context/AppContext";
 import { addressDummyData } from "@/public/images/data";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function CartTotal() {
-  const { router, currency, getCartAmount, cartItems, setCartItems, user } =
-    useAppContext();
+  const {
+    router,
+    currency,
+    getCartAmount,
+    cartItems,
+    setCartItems,
+    user,
+    getToken,
+  } = useAppContext();
   const [showAddress, setShowAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [userAddresses, setUserAddresses] = useState([]);
   const [pamentType, setPamentType] = useState("COD");
 
-  const fetchUserAddresses = () => {
-    setUserAddresses(addressDummyData);
-    if (addressDummyData.length > 0) {
-      setSelectedAddress(addressDummyData[0]);
+  const fetchUserAddresses = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.get("/api/user/get-address", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setUserAddresses(data.addresses);
+        if (data.addresses.length > 0) {
+          setSelectedAddress(data.addresses[0]);
+        }
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 

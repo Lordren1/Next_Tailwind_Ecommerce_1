@@ -1,4 +1,10 @@
-import { inngest, syncUserCreated, syncUserDeleted, syncUserUpdated } from "@/app/config/inngest";
+import { 
+  inngest, 
+  syncUserCreated, 
+  syncUserDeleted, 
+  syncUserUpdated,
+  createUserOder,
+} from "@/config/inngest";
 import { serve } from "inngest/next";
 /* import { inngest } from "../../inngest/client"; */
 
@@ -9,6 +15,7 @@ export const { GET, POST, PUT } = serve({
   functions: [
     syncUserCreated,
     syncUserUpdated,
-    syncUserDeleted 
+    syncUserDeleted,
+    createUserOder, 
   ],
 });

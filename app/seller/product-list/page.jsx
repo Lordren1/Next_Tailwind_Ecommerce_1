@@ -1,12 +1,72 @@
 "use client";
 
 import { useAppContext } from "@/context/AppContext";
+import axios from "axios";
 import Image from "next/image";
+import Spinner from "@/components/Spinner";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function ProductList() {
-  const { products } = useAppContext();
+  const { getToken, user } = useAppContext();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSellerProducts = async () => {
+    try {
+      const token = await getToken();
+
+      const { data } = await axios.get("/api/product/seller-list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setProducts(data.products);
+        setLoading(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const toggleStock = async (productId, nextValue) => {
+    try {
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        "/api/product/stock",
+        { productId, inStock: nextValue },
+        { headers: { Authorization: `Bear ${token}` } },
+      );
+
+      if (data.success) {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p._id === productId ? { ...p, inStock: nextValue } : p,
+          ),
+        );
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchSellerProducts();
+    }
+  }, [user]);
+
+  if (loading) {
+    return <Spinner />;
+  }
+
   return (
-    <div className="flex-1 py-10 flex flex-col justify-between">
+    <div className="flex-1 py-10 flex flex-col justify-between bg-white h-[99hv] overflow-y-scroll w-full">
       <div className="w-full md:p-10 p-4">
         <h2 className="pb-4 text-lg font-medium">All Products</h2>
         <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
@@ -48,6 +108,9 @@ export default function ProductList() {
                         type="checkbox"
                         className="sr-only peer"
                         defaultChecked={product.inStock}
+                        onChange={(e) =>
+                          toggleStock(product._id, e.target.checked)
+                        }
                       />
                       <div className="w-12 h-7 bg-slate-300 rounded-full peer peer-checked:bg-destructive transition-colors duration-200"></div>
                       <span className="dot absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5"></span>

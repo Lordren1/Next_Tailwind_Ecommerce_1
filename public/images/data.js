@@ -46,6 +46,7 @@ export const assets = {
   basketAdd: "/images/basket-add.svg",
   trash: "/images/trash.svg",
   back: "/images/back.svg",
+  uploadArea: "/images/uploadArea.svg",
   dashboardicon,
   overviewicon,
   chaticon,

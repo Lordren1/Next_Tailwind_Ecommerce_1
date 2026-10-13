@@ -1,7 +1,8 @@
 // src/inngest/client.ts
 import User from "@/models/User";
 import { Inngest } from "inngest";
-import dbConnection from "@/app/config/mongodb";
+import dbConnection from "@/config/mongodb";
+import Order from "../models/Order";
 
 export const inngest = new Inngest({ id: "e-commerce" });
 
@@ -60,3 +61,37 @@ export const syncUserDeleted = inngest.createFunction(
     await User.findByIdAndDelete(id);
   }
 );
+
+
+// Batch create oders using Inngest
+export const createUserOder = inngest.createFunction(
+  {
+    id: "create-user-order",
+    // Batch config: run when 5 events have arrived, or after 5 seconds
+    batchEvents: {
+      maxSize: 5,
+      timeout: "5s",
+    },
+    triggers: { event: "order/created" },
+  },
+  
+
+  // Handler for batched events
+  async({events}) => {
+    // Convert incoming events into oder documents
+    const orders = events.map(({data}) => ({
+      userId: data.userId,
+      items: data.items,
+      amount: data.amount,
+      address: data.address,
+      date: data.date,
+      paymentType: data.paymentType,
+    }));
+
+    // Insert all orders at once
+    await dbConnection();
+    await Order.insertMany(orders)
+
+    return {success: true, processed: orders.length}
+  }
+)

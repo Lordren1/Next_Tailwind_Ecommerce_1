@@ -3,11 +3,12 @@
 import CartTotal from "@/components/CartTotal";
 import Title from "@/components/Title";
 import { useAppContext } from "@/context/AppContext";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function AddAddress() {
-  const { router, user } = useAppContext();
+  const { router, user, getToken } = useAppContext();
   const [address, setAddress] = useState({
     completeName: "",
     phone: "",
@@ -18,7 +19,34 @@ export default function AddAddress() {
     streetAddress: "",
   });
 
-  const onChangeHandle = () => {};
+  const onChangeHandle = (e) => {
+    const name = e.target.name;
+    const value = e.target.value;
+
+    setAddress((data) => ({ ...data, [name]: value }));
+  };
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        "/api/user/add-address",
+        { address },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        router.push("/cart");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   useEffect(() => {
     if (user === undefined) return;
@@ -34,7 +62,11 @@ export default function AddAddress() {
         {/* Container */}
         <div className="flex flex-col xl:flex-row gap-20 xl:gap-28">
           {/* Left side - Form */}
-          <form action="" className="flex flex-2 flex-col gap-3 text-[95%] ">
+          <form
+            onSubmit={onSubmitHandler}
+            action=""
+            className="flex flex-2 flex-col gap-3 text-[95%] "
+          >
             <Title
               title1={"Delivery"}
               title2={"Information"}
