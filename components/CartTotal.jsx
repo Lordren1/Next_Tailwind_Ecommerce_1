@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppContext } from "@/context/AppContext";
-import { addressDummyData } from "@/public/images/data";
+/* import { addressDummyData } from "@/public/images/data"; */
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -19,7 +19,7 @@ export default function CartTotal() {
   const [showAddress, setShowAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [userAddresses, setUserAddresses] = useState([]);
-  const [pamentType, setPamentType] = useState("COD");
+  const [pamentType, setPamentType] = useState("COD"); // Normalized variable name
 
   const fetchUserAddresses = async () => {
     try {
@@ -40,11 +40,88 @@ export default function CartTotal() {
     }
   };
 
+  const placeOrder = async () => {
+    try {
+      if (!selectedAddress) {
+        return toast.error("Please select an address");
+      }
+      // Convert cart object into API friendly array
+      const items = Object.entries(cartItems)
+        .map(([product, quantity]) => ({ product, quantity }))
+        .filter((item) => item.quantity > 0);
+
+      if (items.length === 0) {
+        return toast.error("Cart is empty");
+      }
+
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        "/api/order/create",
+        {
+          address: selectedAddress._id,
+          items,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        router.push("/order-confirmation");
+        setCartItems({});
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const placeOrderStripe = async () => {
+    try {
+      if (!selectedAddress) {
+        return toast.error("Please select an address");
+      }
+      // Convert cart object into API friendly array
+      const items = Object.entries(cartItems)
+        .map(([product, quantity]) => ({ product, quantity }))
+        .filter((item) => item.quantity > 0);
+
+      if (items.length === 0) {
+        return toast.error("Cart is empty");
+      }
+
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        "/api/order/stripe",
+        {
+          address: selectedAddress._id,
+          items,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (data.success && data.url) {
+        // Perform ONLY external navigation. Let Stripe return them to /order-confirmation on success
+        window.location.href = data.url;
+        /* toast.success(data.message);
+        router.push("/order-confirmation");
+        setCartItems({}); */
+      } else {
+        toast.error(data.message || "Failed to create checkout session");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchUserAddresses();
     }
   }, [user]);
+
   return (
     <>
       <div className="max-w-90 w-full bg-white p-5 max-md:mt-16 rounded">
@@ -145,7 +222,10 @@ export default function CartTotal() {
           </p>
         </div>
 
-        <button className="w-full py-3 mt-6 cursor-pointer bg-destructive text-white font-medium hover:bg-destructive/60 transition">
+        <button
+          onClick={pamentType === "COD" ? placeOrder : placeOrderStripe}
+          className="w-full py-3 mt-6 cursor-pointer bg-destructive text-white font-medium hover:bg-destructive/60 transition"
+        >
           Place Order
         </button>
       </div>

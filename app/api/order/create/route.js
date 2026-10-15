@@ -36,14 +36,14 @@ export async function POST(req) {
     }
 
     // Add 2% Tax
-    const fnalAmount = amount + Math.floor(amount * 0.02);
+    const finalAmount = amount + Math.floor(amount * 0.02);
     await inngest.send({
       name: "order/created",
       data: {
         userId,
         address,
         items,
-        amout: finalAmout,
+        amount: finalAmount,
         date: Date.now(),
         paymentType: "COD",
       }
@@ -66,10 +66,10 @@ export async function POST(req) {
       await user.save();
     }
 
-    return NextResponse.json({ success: true, message: "Order placer "}, { status: 201 })
+    return NextResponse.json({ success: true, message: "Order placed successfully" }, { status: 201 });
 
-  } catch (error) {
-    console.log("order creation error: ", error)
-    return NextResponse.json({success: false, message: error.message}, { status: 500 })
+  } catch (error) { // 👈 Make sure this catch block is properly paired with a closing '}' above it
+    console.log("order creation error: ", error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

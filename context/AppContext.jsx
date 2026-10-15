@@ -55,7 +55,7 @@ export default function AppContextProvider(prop) {
         toast.error(error.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(data.message);
     }
   };
 
@@ -73,7 +73,7 @@ export default function AppContextProvider(prop) {
     if (user) {
       try {
         const token = await getToken();
-        await axios.post(
+        const { data } = await axios.post(
           "/api/cart/update",
           { cartData },
           { headers: { Authorization: `Bearer ${token}` } },
@@ -100,7 +100,7 @@ export default function AppContextProvider(prop) {
     if (user) {
       try {
         const token = await getToken();
-        await axios.post(
+        const { data } = await axios.post(
           "/api/cart/update",
           { cartData },
           { headers: { Authorization: `Bearer ${token}` } },
@@ -133,7 +133,10 @@ export default function AppContextProvider(prop) {
         totalAmount += itemInfo.offerPrice * cartItems[itemId];
       }
     }
-    return Math.floor(totalAmount * 100) / 100;
+
+    // Enforces clean currency format calculation rules
+    return Number(totalAmount.toFixed(2));
+    /*  return Math.floor(totalAmount * 100) / 100; */
   };
 
   useEffect(() => {

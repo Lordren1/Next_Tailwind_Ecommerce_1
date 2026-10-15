@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    userId: { type: String, required: true, ref: "user" },
+    userId: { type: String, required: true, ref: "User" },
     items: [{
-      product: { type: String, required: true, ref: "product"},
+      product: { type: String, required: true, ref: "Product"},
       quantity: { type: Number, required: true},
     }],
     amount: { type: Number, required: true},
-    address: { type: String, required: true, ref: "address"},
+    address: { type: String, required: true, ref: "Address"},
     status: { type: String, required: true, default: "order Placed"},
     paymentType: { type: String, required: true},
     isPaid: { type: Boolean, required: true, default: false},
@@ -18,6 +18,6 @@ const orderSchema = new mongoose.Schema(
 );
 
 const Order =
-  mongoose.models.order || mongoose.model("order", orderSchema);
+  mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default Order;

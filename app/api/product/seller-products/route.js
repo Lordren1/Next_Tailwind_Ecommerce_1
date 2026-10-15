@@ -6,7 +6,7 @@ import authSeller from "../../../../lib/authSeller";
 
 
 
-// Fetch Seller products | GET /api/product/seller-list | private(seller only)
+// Fetch Seller products | GET /api/product/seller-products | private(seller only)
 export async function GET(req) {
   try {
     const { userId } = getAuth(req);
@@ -31,7 +31,7 @@ export async function GET(req) {
 
     
   } catch (error) {
-    console.error("GET /api/product/seller-list error:", error);
+    console.error("GET /api/product/seller-products error:", error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

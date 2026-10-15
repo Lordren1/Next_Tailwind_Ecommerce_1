@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import dbConnection from "../../../../config/mongodb";
-import User from "../../../../models/User";
+import dbConnection from "@/config/mongodb";
+import User from "@/models/User";
 
 // Update authenticated user's cartItems in the database | POST /api/cart/update | Private (requires clert authentictation)
 export async function POST(req) {

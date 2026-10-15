@@ -3,16 +3,34 @@ import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import Spinner from "@/components/Spinner";
-import { orderDummyData } from "@/public/images/data";
+import axios from "axios";
+import toast from "react-hot-toast";
+/* import { orderDummyData } from "@/public/images/data"; */
 
 export default function OrderList() {
-  const { user, currency } = useAppContext();
+  const { user, currency, getToken } = useAppContext();
 
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
 
-  const fetchSellerOrders = () => {
-    setOrders(orderDummyData);
+  const fetchSellerOrders = async () => {
+    try {
+      const token = await getToken();
+
+      const { data } = await axios.get("/api/order/seller-orders", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        setOrders(data.orders);
+        setLoading(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to fetch orders");
+    }
+    /*  setOrders(orderDummyData); */
     setLoading(false);
   };
 

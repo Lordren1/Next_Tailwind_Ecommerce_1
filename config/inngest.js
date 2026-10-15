@@ -62,36 +62,56 @@ export const syncUserDeleted = inngest.createFunction(
   }
 );
 
-
-// Batch create oders using Inngest
+// Batch create orders using Inngest (Upgraded with Idempotency Protection)
 export const createUserOder = inngest.createFunction(
   {
     id: "create-user-order",
-    // Batch config: run when 5 events have arrived, or after 5 seconds
     batchEvents: {
       maxSize: 5,
       timeout: "5s",
     },
-    triggers: { event: "order/created" },
+    triggers: [{ event: "order/created" }],
   },
-  
 
-  // Handler for batched events
-  async({events}) => {
-    // Convert incoming events into oder documents
-    const orders = events.map(({data}) => ({
-      userId: data.userId,
-      items: data.items,
-      amount: data.amount,
-      address: data.address,
-      date: data.date,
-      paymentType: data.paymentType,
-    }));
-
-    // Insert all orders at once
+  async ({ events }) => {
     await dbConnection();
-    await Order.insertMany(orders)
 
-    return {success: true, processed: orders.length}
+    // 1. Filter the batch so we ONLY look at COD orders
+    const codOrders = events.filter(({ data }) => data.paymentType === "COD");
+
+    // 2. Map them into a high-performance MongoDB bulk operational instruction array
+    if (codOrders.length > 0) {
+      const bulkOps = codOrders.map(({ data }) => ({
+        updateOne: {
+          // Identify uniqueness using a composite fingerprint: user ID + exact creation timestamp
+          filter: { 
+            userId: data.userId, 
+            date: data.date 
+          }, 
+          //  FIX: Removed the backslash from \$setOnInsert
+          update: {
+              $setOnInsert: {
+              userId: data.userId,
+              items: data.items,
+              amount: data.amount,
+              address: data.address,
+              date: data.date || Date.now(),
+              paymentType: data.paymentType,
+              status: "Order Placed",
+              isPaid: false,
+            }
+          },
+          upsert: true, // Enables the database protection layer
+        }
+      }));
+
+      // 3. Fire all operations to MongoDB simultaneously
+      const result = await Order.bulkWrite(bulkOps);
+      console.log(`📦 Inngest safely synchronized ${codOrders.length} batch order(s) via bulkWrite. (Upserts: ${result.upsertedCount})`);
+    } else {
+      console.log("ℹ️ Inngest batch skipped: Stripe orders were already logged by the route handler.");
+    }
+
+    return { success: true, processed: codOrders.length };
   }
-)
+);
